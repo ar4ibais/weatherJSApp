@@ -1,10 +1,12 @@
 const link = "http://api.weatherstack.com/current?access_key=650da03b0768a19750b663e15c570da5";
 
-const root = document.querySelector('#root');
+const root = document.querySelector('#root'),
+      popup = document.querySelector('#popup'),
+      textInput = document.querySelector('#text-input'),
+      form = document.querySelector('#form');
 
 let store = {
     city: 'Saratov',
-    feelslike: 0,
     temperature: 0,
     observationTime: "00:00 AM",
     isDay: "yes",
@@ -20,67 +22,72 @@ let store = {
 };
 
 const fetchData = async () => {
-    const result = await fetch(`${link}&query=${store.city}`),
-          data = await result.json();
+    try {
+        const query = localStorage.getItem("query") || store.city;
+        const result = await fetch(`${link}&query=${query}`);
+        const data = await result.json();
 
-    const { 
-        current: {
-            feelslike, 
-            cloudcover, 
-            temperature, 
-            humidity,
-            observation_time: observationTime,
-            pressure,
-            uv_index: uvIndex,
-            visibility,
-            is_day: isDay,
-            weather_descriptions: description,
-            wind_speed: windSpeed
-        } 
-    } = data;
-    
-    store = {
-        ...store,
-        feelslike,
-        temperature,
-        observationTime,
-        isDay,
-        description: description[0],
-        properties: {
-            cloudcover: {
-                title: 'cloudcover',
-                value: `${cloudcover} %`,
-                icon: 'icons/cloud.png'
+        const {
+            current: {
+              cloudcover,
+              temperature,
+              humidity,
+              observation_time: observationTime,
+              pressure,
+              uv_index: uvIndex,
+              visibility,
+              is_day: isDay,
+              weather_descriptions: description,
+              wind_speed: windSpeed,
             },
-            humidity: {
-                title: 'humidity',
-                value: `${humidity} %`,
-                icon: 'icons/humidity.png'
-            },
-            windSpeed: {
-                title: 'windSpeed',
-                value: `${windSpeed} km/h`,
-                icon: 'icons/wind.png'
-            },
-            visibility: {
-                title: 'visibility',
-                value: `${visibility} %`,
-                icon: 'icons/visibility.png'
-            },
-            uvIndex: {
-                title: 'uvIndex',
-                value: `${uvIndex} / 100`,
-                icon: 'icons/uv-index.png'
-            },
-            pressure: {
-                title: 'pressure',
-                value: `${pressure} %`,
-                icon: 'icons/gauge.png'
+            location: { name },
+          } = data;
+        
+        store = {
+            ...store,
+            temperature,
+            city: name,
+            observationTime,
+            isDay,
+            description: description[0],
+            properties: {
+                cloudcover: {
+                    title: 'cloudcover',
+                    value: `${cloudcover} %`,
+                    icon: 'icons/cloud.png'
+                },
+                humidity: {
+                    title: 'humidity',
+                    value: `${humidity} %`,
+                    icon: 'icons/humidity.png'
+                },
+                windSpeed: {
+                    title: 'windSpeed',
+                    value: `${windSpeed} km/h`,
+                    icon: 'icons/wind.png'
+                },
+                visibility: {
+                    title: 'visibility',
+                    value: `${visibility} %`,
+                    icon: 'icons/visibility.png'
+                },
+                uvIndex: {
+                    title: 'uvIndex',
+                    value: `${uvIndex} / 100`,
+                    icon: 'icons/uv-index.png'
+                },
+                pressure: {
+                    title: 'pressure',
+                    value: `${pressure} %`,
+                    icon: 'icons/gauge.png'
+                }
             }
-        }
-    };
+        };
 
-    renderComponent();
+        renderComponent();
+    } catch(err) {
+        console.log(err);
+    }
 };
 
 const getImage = (description) => {
@@ -154,6 +161,33 @@ const markup = () => {
 
 const renderComponent = () => {
     root.innerHTML = markup();
+    const city = document.querySelector('#city');
+    city.addEventListener('click', togglePopupClass);
 };
+
+const togglePopupClass = () => {
+    popup.classList.toggle('active');
+};
+
+const handleInput = (e) => {
+    store = {
+        ...store,
+        city: e.target.value
+    };
+};
+
+const handleSubmit = (e) => {
+    e.preventDefault();
+    const value = store.city;
+  
+    if (!value) return null;
+  
+    localStorage.setItem("query", value);
+    fetchData();
+    togglePopupClass();
+  };
+
+form.addEventListener('submit', handleSubmit);
+textInput.addEventListener('input', handleInput);
 
 fetchData();
