@@ -3,7 +3,8 @@ const link = "http://api.weatherstack.com/current?access_key=650da03b0768a19750b
 const root = document.querySelector('#root'),
       popup = document.querySelector('#popup'),
       textInput = document.querySelector('#text-input'),
-      form = document.querySelector('#form');
+      form = document.querySelector('#form'),
+      btnClose = document.querySelector('#close');
 
 let store = {
     city: 'Saratov',
@@ -185,7 +186,9 @@ const handleSubmit = (e) => {
     localStorage.setItem("query", value);
     fetchData();
     togglePopupClass();
-  };
+};
+
+btnClose.addEventListener('click', togglePopupClass);
 
 form.addEventListener('submit', handleSubmit);
 textInput.addEventListener('input', handleInput);
